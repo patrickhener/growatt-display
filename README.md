@@ -26,16 +26,19 @@ Only one shot login and get stats.
 growatt-display -username <your-username> -password <hashed-password>
 Login successful
 
--------------------------------------------------------------------
- Plant 'plant-name' 	 Total Energy Last Month  0.0 kWh  
-                                 Total Energy Last Week   0.0 kWh  
-                                 Total Energy Yesterday   6.6 kWh  
-                                 Total Energy Today       3.1 kWh  
-                                 Total Energy This Week   10.5 kWh 
-                                 Total Energy This Month  10.5 kWh 
-                                 Total Energy All Time    10.5 kWh 
- Collector 'collector-name'      Current Power            0.8kW    
--------------------------------------------------------------------
+--------------------------------------------------------------------
+ Plant 'plant-name'   Total Energy Last Month   0.0  kWh 
+                                 Total Energy Last Week    0.0  kWh 
+                                 Total Energy Yesterday    6.6  kWh 
+                                                                    
+                                 Total Energy Today        3.9  kWh 
+                                 Total Energy This Week   11.3  kWh 
+                                 Total Energy This Month  11.3  kWh 
+                                                                    
+                                 Total Energy All Time    11.3  kWh 
+                                                                    
+ Collector 'collector-name'              Current Power            0.61  kW  
+--------------------------------------------------------------------
 ```
 
 # Display loop

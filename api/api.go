@@ -35,6 +35,7 @@ func New(url, username, password string) *GrowattAPI {
 }
 
 func (api *GrowattAPI) Display() error {
+	empty := []string{"", "", "", ""}
 	data := [][]string{}
 
 	plantList, err := api.PlantList()
@@ -43,15 +44,18 @@ func (api *GrowattAPI) Display() error {
 	}
 
 	for _, p := range plantList {
-		data = append(data, []string{fmt.Sprintf("Plant '%s'", p.PlantName), "Total Energy Last Month", p.TotalEnergyLastMonth})
-		data = append(data, []string{"", "Total Energy Last Week", p.TotalEnergyLastWeek})
-		data = append(data, []string{"", "Total Energy Yesterday", p.TotalEnergyYesterday})
-		data = append(data, []string{"", "Total Energy Today", p.TotalEnergyToday})
-		data = append(data, []string{"", "Total Energy This Week", p.TotalEnergyThisWeek})
-		data = append(data, []string{"", "Total Energy This Month", p.TotalEnergyThisMonth})
-		data = append(data, []string{"", "Total Energy All Time", p.TotalEnergyAllTime})
+		data = append(data, []string{fmt.Sprintf("Plant '%s'", p.PlantName), "Total Energy Last Month", p.TotalEnergyLastMonth, "kWh"})
+		data = append(data, []string{"", "Total Energy Last Week", p.TotalEnergyLastWeek, "kWh"})
+		data = append(data, []string{"", "Total Energy Yesterday", p.TotalEnergyYesterday, "kWh"})
+		data = append(data, empty)
+		data = append(data, []string{"", "Total Energy Today", p.TotalEnergyToday, "kWh"})
+		data = append(data, []string{"", "Total Energy This Week", p.TotalEnergyThisWeek, "kWh"})
+		data = append(data, []string{"", "Total Energy This Month", p.TotalEnergyThisMonth, "kWh"})
+		data = append(data, empty)
+		data = append(data, []string{"", "Total Energy All Time", p.TotalEnergyAllTime, "kWh"})
+		data = append(data, empty)
 		for _, d := range p.Devices {
-			data = append(data, []string{fmt.Sprintf("Collector '%s'", d.Alias), "Current Power", d.CurrentPower})
+			data = append(data, []string{fmt.Sprintf("Collector '%s'", d.Alias), "Current Power", d.CurrentPower, "kW"})
 		}
 	}
 

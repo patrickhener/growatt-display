@@ -50,7 +50,6 @@ type ResponseStats struct {
 	TotalEnergyThisWeek  string
 	TotalEnergyThisMonth string
 	TotalEnergyAllTime   string
-	TotalCo2Reduction    string
 	CurrentPower         string
 	Devices              []ResponseDevice
 }
@@ -119,7 +118,7 @@ func (api *GrowattAPI) PlantList() ([]ResponseStats, error) {
 		for _, d := range plantInfo.DeviceList {
 			devices = append(devices, ResponseDevice{
 				Alias:        d.DeviceAlias,
-				CurrentPower: d.PowerStr,
+				CurrentPower: strings.TrimRight(d.PowerStr, "kW"),
 			})
 		}
 
@@ -127,11 +126,10 @@ func (api *GrowattAPI) PlantList() ([]ResponseStats, error) {
 			TotalEnergyLastMonth: prevData.TotalEnergyLastMonth,
 			TotalEnergyLastWeek:  prevData.TotalEnergyLastWeek,
 			TotalEnergyYesterday: prevData.TotalEnergyYesterday,
-			TotalEnergyToday:     p.TodayEnergy,
+			TotalEnergyToday:     strings.TrimRight(p.TodayEnergy, " kWh"),
 			TotalEnergyThisWeek:  curData.TotalEnergyThisWeek,
 			TotalEnergyThisMonth: curData.TotalEnergyThisMonth,
-			TotalEnergyAllTime:   p.TotalEnergy,
-			TotalCo2Reduction:    strings.TrimRight(resJson.Back.TotalData.CO2Sum, " T"),
+			TotalEnergyAllTime:   strings.TrimRight(p.TotalEnergy, " kWh"),
 			PlantName:            p.PlantName,
 			Devices:              devices,
 		})
@@ -190,9 +188,9 @@ func (api *GrowattAPI) GetPreviousData(id string) (PreviousData, error) {
 		lastMonthEnergy = lastWeekEnergy + eFloat
 	}
 
-	prevData.TotalEnergyLastWeek = fmt.Sprintf("%.1f kWh", lastWeekEnergy)
-	prevData.TotalEnergyLastMonth = fmt.Sprintf("%.1f kWh", lastMonthEnergy)
-	prevData.TotalEnergyYesterday = yesterday.Back.PlantData.Energy
+	prevData.TotalEnergyLastWeek = fmt.Sprintf("%.1f", lastWeekEnergy)
+	prevData.TotalEnergyLastMonth = fmt.Sprintf("%.1f", lastMonthEnergy)
+	prevData.TotalEnergyYesterday = strings.TrimRight(yesterday.Back.PlantData.Energy, " kWh")
 
 	return prevData, nil
 
@@ -237,8 +235,8 @@ func (api *GrowattAPI) GetCurrentData(id string) (CurrentData, error) {
 		thisMonthEnergy = thisMonthEnergy + eFloat
 	}
 
-	curData.TotalEnergyThisMonth = fmt.Sprintf("%.1f kWh", thisMonthEnergy)
-	curData.TotalEnergyThisWeek = fmt.Sprintf("%.1f kWh", thisWeekEnergy)
+	curData.TotalEnergyThisMonth = fmt.Sprintf("%.1f", thisMonthEnergy)
+	curData.TotalEnergyThisWeek = fmt.Sprintf("%.1f", thisWeekEnergy)
 
 	return curData, nil
 }
