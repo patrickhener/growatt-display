@@ -1,4 +1,4 @@
-module growatt-display
+module github.com/patrickhener/growatt-display
 
 go 1.19
 

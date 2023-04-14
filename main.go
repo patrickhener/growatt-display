@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"growatt-display/api"
-	"growatt-display/utils"
+	"github.com/patrickhener/growatt-display/api"
+	"github.com/patrickhener/growatt-display/utils"
 	"os"
 	"os/signal"
 	"syscall"
