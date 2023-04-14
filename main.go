@@ -3,12 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/patrickhener/growatt-display/api"
-	"github.com/patrickhener/growatt-display/utils"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/patrickhener/growatt-display/api"
+	"github.com/patrickhener/growatt-display/utils"
 
 	"github.com/howeyc/gopass"
 	"github.com/inancgumus/screen"

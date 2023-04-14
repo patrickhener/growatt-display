@@ -26,15 +26,16 @@ Only one shot login and get stats.
 growatt-display -username <your-username> -password <hashed-password>
 Login successful
 
-Plant 'plant-name':
-	Total Energy Today: 4.3 kWh
-	Total Energy All Time: 5.1 kWh
-	Total Co² reduction: 2.04 kg
-
-Data collectors:
-
-Collector 'collector-name'
-	Current Power: 0.53kW
+-------------------------------------------------------------------
+ Plant 'plant-name' 	 Total Energy Last Month  0.0 kWh  
+                                 Total Energy Last Week   0.0 kWh  
+                                 Total Energy Yesterday   6.6 kWh  
+                                 Total Energy Today       3.1 kWh  
+                                 Total Energy This Week   10.5 kWh 
+                                 Total Energy This Month  10.5 kWh 
+                                 Total Energy All Time    10.5 kWh 
+ Collector 'collector-name'      Current Power            0.8kW    
+-------------------------------------------------------------------
 ```
 
 # Display loop
@@ -43,16 +44,4 @@ This command will keep your display "open" and refresh it after timeout (millise
 
 ```bash
 growatt-display -username <your-username> -password <hashed-password> -loop -timeout 60000
-```
-
-```
-Plant 'plant-name':
-	Total Energy Today: 4.3 kWh
-	Total Energy All Time: 5.1 kWh
-	Total Co² reduction: 2.04 kg
-
-Data collectors:
-
-Collector 'collector-name'
-	Current Power: 0.53kW
 ```

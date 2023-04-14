@@ -20,7 +20,7 @@ type PlantInfoDevice struct {
 func (api *GrowattAPI) PlantInfo(id string) (PlantInfoResponse, error) {
 	var resJson PlantInfoResponse
 
-	finalURL := fmt.Sprintf("%s?op=getAllDeviceList&plantId=%s&pageNum=1&pageSize=1", api.GetUrl("newTwoPlantAPI.do"), id)
+	finalURL := fmt.Sprintf("%s?op=getAllDeviceList&plantId=%s", api.GetUrl("newTwoPlantAPI.do"), id)
 
 	req, err := http.NewRequest(http.MethodGet, finalURL, nil)
 	if err != nil {
