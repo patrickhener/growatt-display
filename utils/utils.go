@@ -49,3 +49,18 @@ func DateRange(week, year int) (startDate, endDate time.Time) {
 
 	return startDate, endDate
 }
+
+func GetWeekStartEnd(year, week int) (int, int, bool, error) {
+	throughMonth := false
+	// Week will be calendar week in int
+	// Find This Monday
+	start, _ := DateRange(week, year)
+	mon := start.Day()
+	sun := mon + 6
+
+	if sun < mon {
+		throughMonth = true
+	}
+
+	return mon, sun, throughMonth, nil
+}

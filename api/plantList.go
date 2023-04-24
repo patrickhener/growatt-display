@@ -97,14 +97,48 @@ func (api *GrowattAPI) PlantList() ([]ResponseStats, error) {
 	for _, p := range resJson.Back.Data {
 		var devices []ResponseDevice
 
-		// Current Data
-		curData, err := api.GetCurrentData(p.PlantID)
+		// current year and week
+		year, week := time.Now().ISOWeek()
+
+		// Current Data (actual Month)
+		curData, err := api.getCurrentMonthData(p.PlantID)
 		if err != nil {
 			return nil, err
 		}
 
-		// Previous Data
-		prevData, err := api.GetPreviousData(p.PlantID)
+		// Previous Data (previous Month)
+		prevData, err := api.getLastMonthData(p.PlantID)
+		if err != nil {
+			return nil, err
+		}
+
+		// Get last month
+		lastMonthTotalEnergy, err := api.getMonthEnergy(prevData.Back.Data)
+		if err != nil {
+			return nil, err
+		}
+
+		// Get last week
+
+		lastWeekTotalEnergy, err := api.getWeekEnergy(prevData, curData, week-1, year)
+		if err != nil {
+			return nil, err
+		}
+
+		// Get yesterday
+		yesterdayTotalEnergy, err := api.getYesterday(time.Now().AddDate(0, 0, -1), p.PlantID)
+		if err != nil {
+			return nil, err
+		}
+
+		// Get this week
+		thisWeekTotalEnergy, err := api.getWeekEnergy(prevData, curData, week, year)
+		if err != nil {
+			return nil, err
+		}
+
+		// Get this month
+		thisMonthTotalEnergy, err := api.getMonthEnergy(curData.Back.Data)
 		if err != nil {
 			return nil, err
 		}
@@ -123,12 +157,12 @@ func (api *GrowattAPI) PlantList() ([]ResponseStats, error) {
 		}
 
 		resStats = append(resStats, ResponseStats{
-			TotalEnergyLastMonth: prevData.TotalEnergyLastMonth,
-			TotalEnergyLastWeek:  prevData.TotalEnergyLastWeek,
-			TotalEnergyYesterday: prevData.TotalEnergyYesterday,
+			TotalEnergyLastMonth: lastMonthTotalEnergy,
+			TotalEnergyLastWeek:  lastWeekTotalEnergy,
+			TotalEnergyYesterday: yesterdayTotalEnergy,
 			TotalEnergyToday:     strings.TrimRight(p.TodayEnergy, " kWh"),
-			TotalEnergyThisWeek:  curData.TotalEnergyThisWeek,
-			TotalEnergyThisMonth: curData.TotalEnergyThisMonth,
+			TotalEnergyThisWeek:  thisWeekTotalEnergy,
+			TotalEnergyThisMonth: thisMonthTotalEnergy,
 			TotalEnergyAllTime:   strings.TrimRight(p.TotalEnergy, " kWh"),
 			PlantName:            p.PlantName,
 			Devices:              devices,
@@ -138,105 +172,81 @@ func (api *GrowattAPI) PlantList() ([]ResponseStats, error) {
 	return resStats, nil
 }
 
-func (api *GrowattAPI) GetPreviousData(id string) (PreviousData, error) {
-	var prevData PreviousData
-
-	// Yesterday
-	timeYesterday := time.Now().AddDate(0, 0, -1)
-	yesterday, err := api.PlantDetail(id, string(utils.Day), timeYesterday)
-	if err != nil {
-		return prevData, err
-	}
-
-	// Last Week (monday - sunday)
-	year, week := time.Now().ISOWeek()
-	week = week - 1
-	// Find Last Monday
-	start, _ := utils.DateRange(week, year)
-	mon := start.Day()
-	sun := mon + 6
-
+func (api *GrowattAPI) getLastMonthData(id string) (PlantDetailResponse, error) {
 	// Last Month (all)
 	lastMonth := time.Now().AddDate(0, -1, 0)
 	lastMonthData, err := api.PlantDetail(id, string(utils.Month), lastMonth)
 	if err != nil {
-		return prevData, err
+		return PlantDetailResponse{}, err
 	}
 
-	// Go over data map and fill both counters
-	lastWeekEnergy := 0.0
-	lastMonthEnergy := 0.0
-
-	for d, e := range lastMonthData.Back.Data {
-		dInt, err := strconv.Atoi(d)
-		if err != nil {
-			return prevData, err
-		}
-		eFloat, err := strconv.ParseFloat(e, 32)
-		if err != nil {
-			return prevData, err
-		}
-
-		// Conditonally calc to Week Energy
-		for i := mon; i <= sun; i++ {
-			if dInt == i {
-				lastWeekEnergy = lastWeekEnergy + eFloat
-			}
-		}
-
-		// Calc to total Energy
-		lastMonthEnergy = lastWeekEnergy + eFloat
-	}
-
-	prevData.TotalEnergyLastWeek = fmt.Sprintf("%.1f", lastWeekEnergy)
-	prevData.TotalEnergyLastMonth = fmt.Sprintf("%.1f", lastMonthEnergy)
-	prevData.TotalEnergyYesterday = strings.TrimRight(yesterday.Back.PlantData.Energy, " kWh")
-
-	return prevData, nil
-
+	return lastMonthData, nil
 }
 
-func (api *GrowattAPI) GetCurrentData(id string) (CurrentData, error) {
-	var curData CurrentData
-
-	// This Week (monday - sunday)
-	year, week := time.Now().ISOWeek()
-	// Find This Monday
-	start, _ := utils.DateRange(week, year)
-	mon := start.Day()
-	sun := mon + 6
+func (api *GrowattAPI) getCurrentMonthData(id string) (PlantDetailResponse, error) {
 	// Fetch This month
 	thisMonthData, err := api.PlantDetail(id, string(utils.Month), time.Now())
 	if err != nil {
-		return curData, err
+		return PlantDetailResponse{}, err
 	}
 
-	// Go over data map and fill both counters
-	thisWeekEnergy := 0.0
-	thisMonthEnergy := 0.0
-	for d, e := range thisMonthData.Back.Data {
-		dInt, err := strconv.Atoi(d)
-		if err != nil {
-			return curData, err
-		}
+	return thisMonthData, nil
+}
+
+func (api *GrowattAPI) getMonthEnergy(data map[string]string) (string, error) {
+	var counter float64
+
+	for _, e := range data {
 		eFloat, err := strconv.ParseFloat(e, 32)
 		if err != nil {
-			return curData, err
-		}
-
-		// Conditonally calc to Week Energy
-		for i := mon; i <= sun; i++ {
-			if dInt == i {
-				thisWeekEnergy = thisWeekEnergy + eFloat
-			}
+			return "", err
 		}
 
 		// Calc to total Energy
-		thisMonthEnergy = thisMonthEnergy + eFloat
+		counter = counter + eFloat
+	}
+	return fmt.Sprintf("%.1f", counter), nil
+}
+
+func (api *GrowattAPI) getYesterday(timeYesterday time.Time, id string) (string, error) {
+
+	yesterday, err := api.PlantDetail(id, string(utils.Day), timeYesterday)
+	if err != nil {
+		return "", err
 	}
 
-	curData.TotalEnergyThisMonth = fmt.Sprintf("%.1f", thisMonthEnergy)
-	curData.TotalEnergyThisWeek = fmt.Sprintf("%.1f", thisWeekEnergy)
+	return strings.TrimRight(yesterday.Back.PlantData.Energy, " kWh"), nil
+}
 
-	return curData, nil
+func (api *GrowattAPI) getWeekEnergy(prevData, curData PlantDetailResponse, week, year int) (string, error) {
+	var weekEnergy float64
+	// Get week start end
+	mon, sun, throughMonth, err := utils.GetWeekStartEnd(year, week)
+	if err != nil {
+		return "", err
+	}
+
+	if throughMonth {
+		return "todo", nil
+	} else {
+		for d, e := range curData.Back.Data {
+			dInt, err := strconv.Atoi(d)
+			if err != nil {
+				return "", err
+			}
+			eFloat, err := strconv.ParseFloat(e, 32)
+			if err != nil {
+				return "", err
+			}
+
+			// Conditonally calc to Week Energy
+			for i := mon; i <= sun; i++ {
+				if dInt == i {
+					weekEnergy = weekEnergy + eFloat
+				}
+			}
+		}
+	}
+
+	return fmt.Sprintf("%.1f", weekEnergy), nil
 }
