@@ -61,7 +61,7 @@ func main() {
 			for {
 				screen.MoveTopLeft()
 				if err := api.Display(); err != nil {
-					panic(err)
+					fmt.Printf("There was an error: %+v\n", err)
 				}
 				time.Sleep(time.Duration(*timeout * int(time.Millisecond)))
 			}
