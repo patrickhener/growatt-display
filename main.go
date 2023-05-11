@@ -71,7 +71,9 @@ func main() {
 					fmt.Printf("There was an error: %+v\n", err)
 					fmt.Printf("Wait one cycle and see if it resolves. Errors in row: %d\n", error_count)
 				}
-				error_count = 0
+				if err == nil {
+					error_count = 0
+				}
 				time.Sleep(time.Duration(*timeout * int(time.Millisecond)))
 			}
 		}
