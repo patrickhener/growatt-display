@@ -64,7 +64,6 @@ func main() {
 			}()
 
 			for {
-				screen.Clear()
 				screen.MoveTopLeft()
 				if err := api.Display(); err != nil {
 					screen.Clear()
