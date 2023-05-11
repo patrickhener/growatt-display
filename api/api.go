@@ -18,10 +18,10 @@ type GrowattAPI struct {
 	UserRightLevel int
 }
 
-func New(url, username, password string) *GrowattAPI {
+func New(url, username, password string) (*GrowattAPI, error) {
 	jar, err := cookiejar.New(nil)
 	if err != nil {
-		panic(err)
+		return &GrowattAPI{}, err
 	}
 	client := &http.Client{
 		Jar: jar,
@@ -31,7 +31,7 @@ func New(url, username, password string) *GrowattAPI {
 		Username:       username,
 		HashedPassword: password,
 		HttpClient:     client,
-	}
+	}, nil
 }
 
 func (api *GrowattAPI) Display() error {

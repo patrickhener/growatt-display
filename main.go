@@ -36,7 +36,11 @@ func main() {
 			fmt.Println("You need to provide -username and -password")
 			os.Exit(-1)
 		}
-		api := api.New(*server, *username, *password)
+		api, err := api.New(*server, *username, *password)
+		if err != nil {
+			panic(err)
+		}
+
 		if err := api.Login(); err != nil {
 			panic(err)
 		}
@@ -47,6 +51,7 @@ func main() {
 				panic(err)
 			}
 		} else {
+			error_count := 0
 			fmt.Print("\x1b[?25l")
 			screen.Clear()
 
@@ -59,13 +64,17 @@ func main() {
 			}()
 
 			for {
+				screen.Clear()
 				screen.MoveTopLeft()
 				if err := api.Display(); err != nil {
+					screen.Clear()
+					error_count = error_count + 1
 					fmt.Printf("There was an error: %+v\n", err)
+					fmt.Printf("Wait one cycle and see if it resolves. Errors in row: %d\n", error_count)
 				}
+				error_count = 0
 				time.Sleep(time.Duration(*timeout * int(time.Millisecond)))
 			}
-
 		}
 	case "genhash":
 		fmt.Print("Enter your password: ")
