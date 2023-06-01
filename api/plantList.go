@@ -119,7 +119,6 @@ func (api *GrowattAPI) PlantList() ([]ResponseStats, error) {
 		}
 
 		// Get last week
-
 		lastWeekTotalEnergy, err := api.getWeekEnergy(prevData, curData, week-1, year)
 		if err != nil {
 			return nil, err
@@ -220,30 +219,38 @@ func (api *GrowattAPI) getYesterday(timeYesterday time.Time, id string) (string,
 
 func (api *GrowattAPI) getWeekEnergy(prevData, curData PlantDetailResponse, week, year int) (string, error) {
 	var weekEnergy float64
+
 	// Get week start end
-	mon, sun, throughMonth, err := utils.GetWeekStartEnd(year, week)
+	start, end, throughMonth, curPrev, err := utils.GetWeekStartEnd(year, week)
 	if err != nil {
 		return "", err
 	}
 
 	if throughMonth {
-		return "todo", nil
-	} else {
-		for d, e := range curData.Back.Data {
-			dInt, err := strconv.Atoi(d)
-			if err != nil {
-				return "", err
-			}
-			eFloat, err := strconv.ParseFloat(e, 32)
-			if err != nil {
-				return "", err
-			}
+		// Previous months last day
+		lengthPrevMonth := utils.DaysInMonth(start.Month(), year)
 
-			// Conditonally calc to Week Energy
-			for i := mon; i <= sun; i++ {
-				if dInt == i {
-					weekEnergy = weekEnergy + eFloat
-				}
+		// From start.Day() to Month end in prevData
+		out1, err := utils.AddKilowatts(start.Day(), lengthPrevMonth, prevData.Back.Data)
+		if err != nil {
+			return "", err
+		}
+		out2, err := utils.AddKilowatts(1, end.Day(), curData.Back.Data)
+		if err != nil {
+			return "", err
+		}
+		weekEnergy = out1 + out2
+	} else {
+		switch curPrev {
+		case "cur":
+			weekEnergy, err = utils.AddKilowatts(start.Day(), end.Day(), curData.Back.Data)
+			if err != nil {
+				return "", err
+			}
+		case "prev":
+			weekEnergy, err = utils.AddKilowatts(start.Day(), end.Day(), prevData.Back.Data)
+			if err != nil {
+				return "", err
 			}
 		}
 	}

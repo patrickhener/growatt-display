@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -50,17 +51,53 @@ func DateRange(week, year int) (startDate, endDate time.Time) {
 	return startDate, endDate
 }
 
-func GetWeekStartEnd(year, week int) (int, int, bool, error) {
+func GetWeekStartEnd(year, week int) (time.Time, time.Time, bool, string, error) {
+	var curPrev string
 	throughMonth := false
+	currentMonth := time.Now().Month()
+
 	// Week will be calendar week in int
 	// Find This Monday
 	start, _ := DateRange(week, year)
-	mon := start.Day()
-	sun := mon + 6
+	end := start.AddDate(0, 0, 6)
 
-	if sun < mon {
+	if start.Month() == end.Month() {
+		if start.Month() == currentMonth {
+			curPrev = "cur"
+		} else {
+			curPrev = "prev"
+		}
+	} else {
 		throughMonth = true
 	}
 
-	return mon, sun, throughMonth, nil
+	return start, end, throughMonth, curPrev, nil
+}
+
+func DaysInMonth(m time.Month, year int) int {
+	return time.Date(year, m+1, 0, 0, 0, 0, 0, time.UTC).Day()
+}
+
+func AddKilowatts(start, end int, data map[string]string) (float64, error) {
+	var weekEnergy float64
+
+	for d, e := range data {
+		dInt, err := strconv.Atoi(d)
+		if err != nil {
+			return 0, err
+		}
+		eFloat, err := strconv.ParseFloat(e, 32)
+		if err != nil {
+			return 0, err
+		}
+
+		// Conditonally calc to Week Energy
+		for i := start; i <= end; i++ {
+			if dInt == i {
+				weekEnergy = weekEnergy + eFloat
+			}
+		}
+	}
+
+	return weekEnergy, nil
 }
